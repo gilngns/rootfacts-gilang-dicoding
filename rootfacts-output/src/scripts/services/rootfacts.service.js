@@ -1,10 +1,5 @@
-import { pipeline, env } from "@huggingface/transformers";
-import { MODEL_CONFIG, APP_CONFIG } from "../config.js";
+import { MODEL_CONFIG } from "../config.js";
 import { isWebGPUSupported } from "../utils/index.js";
-
-// Gunakan cache lokal untuk Transformers.js
-env.allowLocalModels = false;
-env.useBrowserCache = true;
 
 const TONE_PROMPTS = {
   normal: (veg) =>
@@ -16,6 +11,16 @@ const TONE_PROMPTS = {
   casual: (veg) =>
     `Write a casual and friendly fun fact about ${veg} vegetable in 2-3 sentences. Write like you are talking to a friend.`,
 };
+
+// Loader Transformers.js dari CDN (di luar webpack bundle)
+let _transformersPromise = null;
+function loadTransformers() {
+  if (_transformersPromise) return _transformersPromise;
+  _transformersPromise = import(
+    /* webpackIgnore: true */ "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/transformers.min.js"
+  );
+  return _transformersPromise;
+}
 
 class RootFactsService {
   constructor() {
@@ -29,14 +34,15 @@ class RootFactsService {
 
   async loadModel(onProgress) {
     try {
-      // Adaptive backend check
-      if (isWebGPUSupported()) {
-        this.currentBackend = "webgpu";
-        console.log("✅ Transformers.js: using WebGPU");
-      } else {
-        this.currentBackend = "webgl";
-        console.log("✅ Transformers.js: using WebGL (wasm)");
-      }
+      if (onProgress) onProgress(5, "Memuat pustaka AI...");
+
+      const { pipeline, env } = await loadTransformers();
+
+      env.allowLocalModels = false;
+      env.useBrowserCache = true;
+
+      this.currentBackend = isWebGPUSupported() ? "webgpu" : "wasm";
+      console.log(`✅ Transformers.js backend: ${this.currentBackend}`);
 
       if (onProgress) onProgress(10, "Mengunduh model bahasa...");
 
@@ -45,9 +51,10 @@ class RootFactsService {
         this.config.transformersModel,
         {
           dtype: this.config.transformersDtype,
+          device: this.currentBackend,
           progress_callback: (info) => {
             if (onProgress && info.status === "progress" && info.total) {
-              const pct = Math.round((info.loaded / info.total) * 80) + 10;
+              const pct = Math.min(Math.round((info.loaded / info.total) * 80) + 10, 95);
               onProgress(pct, `Mengunduh model AI... ${pct}%`);
             }
           },
@@ -65,16 +72,13 @@ class RootFactsService {
   }
 
   setTone(tone) {
-    if (TONE_PROMPTS[tone]) {
-      this.currentTone = tone;
-    }
+    if (TONE_PROMPTS[tone]) this.currentTone = tone;
   }
 
   async generateFacts(vegetable, tone = null) {
     if (!this.isReady()) throw new Error("Model belum siap");
     if (this.isGenerating) return null;
 
-    // Sanitize input – cegah prompt injection
     const maxLen = 50;
     const cleanVeg = String(vegetable)
       .replace(/[^a-zA-Z0-9 _-]/g, "")
@@ -97,11 +101,10 @@ class RootFactsService {
         repetition_penalty: 1.3,
       });
 
-      const text =
+      return (
         output?.[0]?.generated_text?.trim() ||
-        `${cleanVeg} is a nutritious vegetable packed with vitamins and minerals. It has been cultivated for thousands of years around the world.`;
-
-      return text;
+        `${cleanVeg} is a nutritious vegetable packed with vitamins and minerals.`
+      );
     } finally {
       this.isGenerating = false;
     }

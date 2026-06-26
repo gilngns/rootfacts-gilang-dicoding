@@ -9,7 +9,10 @@ module.exports = {
   output: {
     filename: "[name].bundle.js",
     path: path.resolve(__dirname, "dist"),
+    clean: true,
+    publicPath: "/",
   },
+  target: "web",
   module: {
     rules: [
       {
@@ -31,16 +34,10 @@ module.exports = {
         use: ["style-loader", "css-loader"],
       },
     ],
-    parser: {
-      javascript: {
-        importMeta: true,
-      },
-    },
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, "src/index.html"),
-      scriptLoading: "module",
     }),
     new CopyWebpackPlugin({
       patterns: [
@@ -49,7 +46,4 @@ module.exports = {
       ],
     }),
   ],
-  stats: {
-    warningsFilter: /import\.meta/,
-  },
 };
