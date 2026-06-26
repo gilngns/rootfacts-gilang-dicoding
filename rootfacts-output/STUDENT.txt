@@ -1,1 +1,1 @@
-APP_URL=
+APP_URL=https://6a3e225d26a500b9d5d07eb4--charming-gumption-a4f1ea.netlify.app/
