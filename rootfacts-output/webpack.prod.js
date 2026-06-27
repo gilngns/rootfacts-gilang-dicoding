@@ -69,7 +69,7 @@ module.exports = merge(common, {
           },
         },
       ],
-      navigateFallback: "index.html",
+      navigateFallback: "/index.html",
       clientsClaim: true,
       skipWaiting: true,
     }),

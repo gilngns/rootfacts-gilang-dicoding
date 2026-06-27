@@ -52,7 +52,36 @@
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('✅ SW registered:', reg.scope))
+            .then(reg => {
+              console.log('✅ SW registered:', reg.scope);
+              
+              // Tambahkan notifikasi saat Service Worker selesai mendownload semua cache
+              reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed') {
+                    if (navigator.serviceWorker.controller) {
+                      console.log('Update tersedia.');
+                    } else {
+                      console.log('Cache offline selesai didownload.');
+                      const statusText = document.getElementById('status-text');
+                      const statusDot = document.getElementById('status-dot');
+                      if (statusText && statusDot) {
+                        statusText.textContent = 'Siap Offline!';
+                        statusDot.style.backgroundColor = '#10b981'; // Hijau
+                        // Kembalikan ke teks asli setelah 3 detik
+                        setTimeout(() => {
+                          if (statusText.textContent === 'Siap Offline!') {
+                            statusText.textContent = 'Siap';
+                          }
+                        }, 3000);
+                      }
+                      alert("✅ Semua file AI (15MB+) berhasil disimpan ke memori.\nAplikasi sekarang SIAP digunakan tanpa internet!");
+                    }
+                  }
+                });
+              });
+            })
             .catch(err => console.error('❌ SW error:', err));
         });
       }
