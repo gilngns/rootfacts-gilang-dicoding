@@ -62,6 +62,11 @@ class HomePresenter {
       this.#view.setCameraActive(false);
       this.#view.showState("idle");
     } else {
+      // CLEAR MEMORY: Reset label, confidence, and fact before starting camera again
+      this.#lastDetectedLabel = null;
+      this.#view.updateFacts("");
+      this.#view.updateDetectedLabel("", 0);
+      this.#view.showState("idle");
       await this.startCamera();
     }
   }
@@ -128,6 +133,11 @@ class HomePresenter {
       const tone = document.getElementById("tone-select")?.value || "normal";
       const facts = await this.#rootFactsService.generateFacts(result.label, tone);
       this.#view.updateFacts(facts);
+      
+      // STOP WEBCAM AFTER FACTS GENERATED: keeping the result visible on screen
+      this.stopScanning();
+      this.#cameraService.stopCamera();
+      this.#view.setCameraActive(false);
     } catch (err) {
       logError("generateFacts", err);
       this.#view.updateFacts("Gagal memuat fakta. Coba lagi.");
