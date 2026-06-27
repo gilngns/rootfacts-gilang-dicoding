@@ -27,7 +27,11 @@ module.exports = merge(common, {
       additionalManifestEntries: [
         { url: "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js", revision: null },
         { url: "https://unpkg.com/lucide@0.462.0/dist/umd/lucide.js", revision: null },
-        { url: "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/transformers.min.js", revision: null }
+        { url: "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/transformers.min.js", revision: null },
+        { url: "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/ort-wasm-simd-threaded.jsep.wasm", revision: null },
+        { url: "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/ort-wasm-simd-threaded.jsep.mjs", revision: null },
+        { url: "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/ort-wasm-simd.wasm", revision: null },
+        { url: "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/ort-wasm-simd.mjs", revision: null }
       ],
       runtimeCaching: [
         {
