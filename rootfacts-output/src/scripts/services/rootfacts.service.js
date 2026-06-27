@@ -17,7 +17,7 @@ let _transformersPromise = null;
 function loadTransformers() {
   if (_transformersPromise) return _transformersPromise;
   _transformersPromise = import(
-    /* webpackIgnore: true */ "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/transformers.min.js"
+    /* webpackIgnore: true */ "https://unpkg.com/@huggingface/transformers@3.8.1/dist/transformers.min.js"
   );
   return _transformersPromise;
 }
@@ -44,7 +44,10 @@ class RootFactsService {
       // Disable multithreading (Web Worker) for WASM backend.
       // Cross-origin Web Workers bypass the Service Worker, which breaks offline mode.
       // Running it on the main thread ensures the SW can intercept and serve the cached .wasm files.
-      if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
+      env.backends.onnx.wasmPaths = 'https://unpkg.com/@huggingface/transformers@3.8.1/dist/';
+      if (env.backends && env.backends.onnx) {
+        env.backends.onnx.wasm = env.backends.onnx.wasm || {};
+        env.backends.onnx.wasm.wasmPaths = 'https://unpkg.com/@huggingface/transformers@3.8.1/dist/';
         env.backends.onnx.wasm.numThreads = 1;
       }
 
