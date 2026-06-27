@@ -40,6 +40,13 @@ class RootFactsService {
 
       env.allowLocalModels = false;
       env.useBrowserCache = true;
+      
+      // Disable multithreading (Web Worker) for WASM backend.
+      // Cross-origin Web Workers bypass the Service Worker, which breaks offline mode.
+      // Running it on the main thread ensures the SW can intercept and serve the cached .wasm files.
+      if (env.backends && env.backends.onnx && env.backends.onnx.wasm) {
+        env.backends.onnx.wasm.numThreads = 1;
+      }
 
       this.currentBackend = isWebGPUSupported() ? "webgpu" : "wasm";
       console.log(`✅ Transformers.js backend: ${this.currentBackend}`);
